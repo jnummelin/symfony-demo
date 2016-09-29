@@ -1,0 +1,71 @@
+version: '2'
+services:
+
+  galera-seed:
+    image: jakolehm/galera-mariadb-10.0-xtrabackup:latest
+    stateful: true
+    command: seed
+    secrets:
+      - secret: MYSQL_PASSWORD
+        name: XTRABACKUP_PASSWORD
+        type: env
+      - secret: MYSQL_PASSWORD
+        name: MYSQL_ROOT_PASSWORD
+        type: env
+
+  galera:
+    image: jakolehm/galera-mariadb-10.0-xtrabackup:latest
+    stateful: true
+    instances: 3
+    command: "node wordpress-cluster-galera-seed-1.kontena.local,symfony-demo-galera.kontena.local"
+    environment:
+      - MYSQL_DATABASE=symfony
+    secrets:
+      - secret: MYSQL_PASSWORD
+        name: XTRABACKUP_PASSWORD
+        type: env
+    links:
+      - galera-ha
+    environment:
+      - KONTENA_LB_MODE=tcp
+      - KONTENA_LB_BALANCE=roundrobin
+      - KONTENA_LB_INTERNAL_PORT=3306
+      - KONTENA_LB_EXTERNAL_PORT=3306
+
+  galera-ha:
+    image: kontena/lb:latest
+    instances: 2
+
+  symfony:
+    extends:
+      file: docker-compose.yml
+      service: symfony
+    image: jnummelin/symfony-demo
+    links:
+      - galera
+      - loadbalancer
+    ports:
+      - 8000:8000
+    environment:
+      - DATABASE_HOST=%{project}-galera-ha.kontena.local
+      - DATABASE_USER=root
+      - KONTENA_LB_VIRTUAL_PATH=/
+      - KONTENA_LB_INTERNAL_PORT=8000
+      - KONTENA_LB_BALANCE=source
+    secrets:
+      - secret: MYSQL_PASSWORD
+        name: DATABASE_PASSWORD
+        type: env
+
+
+  loadbalancer:
+    image: kontena/lb:latest
+    deploy:
+      strategy: daemon
+    ports:
+      - 80:80
+      - 443:443
+    secrets:
+      - secret: LE_CERTIFICATE_symfony-demo_kontena_io_BUNDLE
+        name: SSL_CERTS
+        type: env

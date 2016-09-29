@@ -13,6 +13,7 @@
     "require": {
         "php"                                  : ">=5.5.9",
         "ext-pdo_sqlite"                       : "*",
+        "ext-pdo_mysql"                        : "*",
         "doctrine/doctrine-bundle"             : "^1.6",
         "doctrine/doctrine-fixtures-bundle"    : "^2.2",
         "doctrine/orm"                         : "^2.5",
@@ -39,7 +40,6 @@
         "post-install-cmd": [
             "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget"
@@ -47,7 +47,6 @@
         "post-update-cmd": [
             "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget"
@@ -68,7 +67,9 @@
         "incenteev-parameters": {
             "file": "app/config/parameters.yml",
             "env-map": {
-                "database_url": "DATABASE_URL",
+                "database_host": "DATABASE_HOST",
+                "database_password": "DATABASE_PASSWORD",
+                "database_user": "DATABASE_USER",
                 "secret": "SYMFONY_SECRET"
             }
         }

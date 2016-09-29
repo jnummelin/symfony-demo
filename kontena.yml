@@ -1,0 +1,46 @@
+version: '2'
+services:
+  app:
+    extends:
+      file: docker-compose.yml
+      service: symfony
+    image: jnummelin/symfony-demo
+    links:
+      - mysql
+      - loadbalancer
+    environment:
+      - DATABASE_HOST=%{project}-mysql.kontena.local
+      - DATABASE_USER=symfony
+      - KONTENA_LB_VIRTUAL_PATH=/
+      - KONTENA_LB_INTERNAL_PORT=8000
+      - KONTENA_LB_BALANCE=source
+    secrets:
+      - secret: MYSQL_PASSWORD
+        name: DATABASE_PASSWORD
+        type: env
+
+
+  mysql:
+    image: mysql:5.6
+    stateful: true
+    environment:
+      - MYSQL_DATABASE=symfony
+      - MYSQL_USER=symfony
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    secrets:
+      - secret: MYSQL_PASSWORD
+        name: MYSQL_PASSWORD
+        type: env
+
+
+  loadbalancer:
+    image: kontena/lb:latest
+    deploy:
+      strategy: daemon
+    ports:
+      - 80:80
+      - 443:443
+    secrets:
+      - secret: LE_CERTIFICATE_symfony-demo_kontena_io_BUNDLE
+        name: SSL_CERTS
+        type: env
